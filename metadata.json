@@ -1,0 +1,6 @@
+{
+  "name": "PASS EVALA 2026",
+  "description": "Professional real-time news and information dashboard for the PASS EVALA 2026 event platform.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
