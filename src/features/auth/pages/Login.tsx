@@ -26,16 +26,21 @@ const Login = () => {
 
       const response = await authService.login(credentials);
 
-      // Utiliser la fonction login du contexte pour mettre à jour l'état global
+      // Met à jour l'état global et stocke dans le localStorage
       login(response.data, response.token);
 
-      // Rediriger vers la page d'accueil
-      navigate('/');
+      const user = response.data;
+      
+      // 🔥 REDIRECTION : Si c'est l'Alpha, l'Admin ou un Reporter -> Espace Admin. Sinon -> Flux Evala public
+      const staffRoles = ['superadmin', 'admin'];
+      const hasAdminAccess = staffRoles.includes(user?.role);
+      
+      navigate(hasAdminAccess ? '/admin' : '/');
     } catch (err: any) {
       setError(
         err.response?.data?.message ||
         err.message ||
-        'Erreur lors de la connexion'
+        'Identifiants incorrects.'
       );
     } finally {
       setLoading(false);

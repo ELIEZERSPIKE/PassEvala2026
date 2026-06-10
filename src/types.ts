@@ -3,6 +3,11 @@ export interface User {
   name: string;
   username: string;
   avatar_url?: string | null;
+  role:string;
+  permissions: string[]; // Permissions Spatie envoyées par le backend
+  created_at: string;
+  updated_at: string;
+  
 }
 
 export interface Article {

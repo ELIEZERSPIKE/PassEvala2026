@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Sponsor } from '../types';
 import { sponsorService } from '../services';
 
+import { getImageUrl } from '../utils/imageUtils'; // Import de la fonction utilitaire
+
 export default function SponsorBanner() {
   const [sponsors, setSponsors] = useState<Sponsor[]>([]);
 
@@ -25,7 +27,7 @@ export default function SponsorBanner() {
       <div className="flex flex-col sm:flex-row lg:flex-col gap-4 items-center justify-center">
         {sponsors.map((sponsor) => (
           <a key={sponsor.id} href={sponsor.website_url || '#'} target="_blank" rel="noopener noreferrer" className="block w-full max-w-[160px] opacity-80 hover:opacity-100 transition-opacity" title={sponsor.name}>
-            <img src={sponsor.banner_url || 'https://via.placeholder.com/300x150'} alt={sponsor.name} className="w-full h-auto object-contain max-h-16 mix-blend-multiply" />
+            <img src={getImageUrl(sponsor.banner_url, 'https://via.placeholder.com/300x150')} alt={sponsor.name} className="w-full h-auto object-contain max-h-16 mix-blend-multiply" />
           </a>
         ))}
       </div>

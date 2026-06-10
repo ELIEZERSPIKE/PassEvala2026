@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BonPlan } from '../types';
 import { bonPlanService } from '../services';
 import { Star, MapPin } from 'lucide-react';
+import { getImageUrl } from '../utils/imageUtils'; // Import de la fonction utilitaire
 
 export default function BonsPlansKara() {
   const [bonsPlans, setBonsPlans] = useState<BonPlan[]>([]);
@@ -34,7 +35,7 @@ export default function BonsPlansKara() {
         {bonsPlans.map((plan) => (
           <div key={plan.id} className="flex gap-3 border-b border-gray-100 pb-4 last:border-0 last:pb-0 group">
             <div className="w-20 h-20 bg-gray-100 rounded-sm overflow-hidden flex-shrink-0 relative">
-              <img src={plan.image_path || 'https://via.placeholder.com/150'} alt={plan.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+              <img src={getImageUrl(plan.image_path, 'https://via.placeholder.com/150')} alt={plan.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
             </div>
             <div className="flex flex-col justify-between">
               <div>

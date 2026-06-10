@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Short } from '../types';
 import { shortService } from '../services';
 import { Play, Heart, MessageSquare, Share2 } from 'lucide-react';
+import { getImageUrl } from '../utils/imageUtils'; // Import de la fonction utilitaire
 
 export default function FilEvalaShorts() {
   const [shorts, setShorts] = useState<Short[]>([]);
@@ -55,7 +56,7 @@ export default function FilEvalaShorts() {
 
             {post.processed_path && (
               <div className="relative bg-black w-full aspect-[4/5] flex items-center justify-center overflow-hidden group cursor-pointer">
-                <img src={post.thumbnail_path || 'https://via.placeholder.com/400x500'} alt="Video thumbnail" className="w-full h-full object-cover opacity-80 group-hover:opacity-60 transition-opacity" />
+                <img src={getImageUrl(post.thumbnail_path, 'https://via.placeholder.com/400x500')} alt="Video thumbnail" className="w-full h-full object-cover opacity-80 group-hover:opacity-60 transition-opacity" />
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/40 group-hover:scale-110 transition-transform">
                     <Play className="w-8 h-8 text-white fill-current ml-1" />

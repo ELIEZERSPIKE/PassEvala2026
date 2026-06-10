@@ -1,6 +1,6 @@
 import { useAuth } from '../store/authContext';
-import { LogOut, User } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { LogOut, User, LayoutDashboard } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
 
 const Navbar = () => {
   const { user, logout, isAuthenticated } = useAuth();
@@ -10,6 +10,9 @@ const Navbar = () => {
     await logout();
     navigate('/login');
   };
+
+  // Liste des rôles ayant accès au back-office
+  const isStaff = user && ['superadmin', 'admin'].includes(user.role);
 
   return (
     <nav className="bg-white border-b border-gray-200 shadow-sm">
@@ -23,9 +26,9 @@ const Navbar = () => {
 
           {/* Navigation Links */}
           <div className="hidden md:flex items-center gap-8">
-            <a href="/" className="text-gray-700 hover:text-blue-600 transition">
+            <Link to="/" className="text-gray-700 hover:text-blue-600 transition">
               Accueil
-            </a>
+            </Link>
             <a href="#" className="text-gray-700 hover:text-blue-600 transition">
               Actualités
             </a>
@@ -35,6 +38,12 @@ const Navbar = () => {
             <a href="#" className="text-gray-700 hover:text-blue-600 transition">
               À Propos
             </a>
+            {isStaff && (
+              <Link to="/admin" className="flex items-center gap-1 text-blue-600 hover:text-blue-700 transition font-bold">
+                <LayoutDashboard className="w-4 h-4" />
+                Administration
+              </Link>
+            )}
           </div>
 
           {/* User Menu */}

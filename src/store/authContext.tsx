@@ -7,6 +7,7 @@ interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
   login: (user: User, token: string) => void;
+  hasPermission: (permission: string) => boolean;
   logout: () => Promise<void>;
   isLoading: boolean;
 }
@@ -18,7 +19,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Initialize from localStorage on mount
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
@@ -45,17 +45,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     try {
-      // Appeler le service de déconnexion du backend
       await authService.logout();
     } catch (error) {
       console.error('Error during logout:', error);
     } finally {
-      // Toujours nettoyer l'état local même si la requête échoue
       setUser(null);
       setToken(null);
       localStorage.removeItem('user');
       localStorage.removeItem('token');
     }
+  };
+
+  // 🔥 AJOUT : Permet de vérifier à la volée une permission Spatie dans tes composants front
+  const hasPermission = (permission: string): boolean => {
+    if (!user) return false;
+    // Si l'utilisateur est l'Alpha, il a tous les droits par défaut
+    if (user.role === 'superadmin') return true;
+    return user.permissions?.includes(permission) || false;
   };
 
   const value: AuthContextType = {
@@ -65,6 +71,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     login,
     logout,
     isLoading,
+    hasPermission, // Exposé pour tes futurs composants (ex: masquer un bouton de suppression)
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

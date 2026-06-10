@@ -10,6 +10,7 @@ import Footer from '../components/Footer';
 import { Article } from '../types';
 import { Calendar, MapPin, Clock, X, Filter } from 'lucide-react';
 import { CALENDAR_EVENTS } from '../data'; // We keep calendar data for now as it doesn't have an API yet
+import { getImageUrl } from '../utils/imageUtils'; // Import de la fonction utilitaire
 
 export default function HomePage() {
   const [activeNavSection, setActiveNavSection] = useState('all');
@@ -90,20 +91,7 @@ export default function HomePage() {
 
           {/* Flash Info */}
           <div className={`order-3 lg:order-none lg:col-span-1 lg:col-start-1 lg:row-start-2 lg:row-span-1 transition-all duration-500 rounded-sm ${highlightedId === 'component-flash-info' ? 'ring-4 ring-blue-600 ring-offset-2 z-10 scale-[1.01] shadow-lg' : ''}`} id="component-flash-info">
-            <FlashInfoFeed onArticleClick={(title, content) => {
-              setSelectedArticle({
-                id: 9999,
-                user_id: 1,
-                title,
-                content,
-                slug: 'flash-info',
-                summary: title,
-                image_path: null,
-                is_hero: false,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-              });
-            }} />
+            <FlashInfoFeed onArticleClick={setSelectedArticle} />
           </div>
 
           {/* Bons Plans */}
@@ -141,14 +129,14 @@ export default function HomePage() {
                 </button>
               </div>
               <div className="p-6">
-                {selectedArticle.image_path && (
-                  <img
-                    src={selectedArticle.image_path}
-                    alt={selectedArticle.title}
-                    className="w-full h-64 object-cover rounded-lg mb-4"
-                  />
-                )}
-                <p className="text-gray-600">{selectedArticle.summary}</p>
+                <img
+                  src={getImageUrl(selectedArticle.image_path)}
+                  alt={selectedArticle.title}
+                  className="w-full h-64 object-cover rounded-lg mb-4"
+                />
+                <div className="prose max-w-none text-gray-700 whitespace-pre-wrap">
+                  {selectedArticle.content || selectedArticle.summary}
+                </div>
                 <div className="mt-4 text-sm text-gray-500">
                   <p>Publié le {new Date(selectedArticle.created_at).toLocaleDateString()}</p>
                 </div>
