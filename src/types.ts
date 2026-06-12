@@ -24,6 +24,8 @@ export interface Article {
   user?: User; // via Eager Loading
 }
 
+
+
 export interface Short {
   id: number;
   user_id: number;

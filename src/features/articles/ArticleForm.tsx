@@ -91,11 +91,6 @@ export const ArticleForm: React.FC = () => {
 
     try {
       if (isEdit) {
-        // Laravel ne supporte pas le multipart/form-data avec la méthode PUT native.
-        // On utilise le Method Spoofing en envoyant du POST avec un champ _method=PUT.
-        if (!data.has('_method')) {
-          data.append('_method', 'PUT');
-        }
         await articleService.update(id!, data);
       } else {
         await articleService.create(data);
