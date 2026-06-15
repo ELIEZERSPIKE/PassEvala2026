@@ -52,11 +52,26 @@ export const sponsorApi = {
   },
 
   // Mise à jour (Multipart simulé en PUT via _method)
-  update: async (id: number, formData: FormData) => {
-    const response = await api.post<{ message: string; data: Sponsor }>(`/sponsors/${id}`, formData);
-    return response.data;
-  },
+  // update: async (id: number, formData: FormData) => {
+  //   const response = await api.post<{ message: string; data: Sponsor }>(`/sponsors/${id}`, formData);
+  //   return response.data;
+  // },
 
+  update: async (id: number, formData: FormData) => {
+  formData.append('_method', 'PUT');
+
+  const response = await api.post(
+    `/sponsors/${id}`,
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
+
+  return response.data;
+},
   // Suppression
   delete: async (id: number) => {
     const response = await api.delete<{ message: string }>(`/sponsors/${id}`);

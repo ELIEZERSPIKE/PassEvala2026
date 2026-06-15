@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Short } from '../types';
 import { shortService } from '../services';
 import { Play, Heart, MessageSquare, Share2 } from 'lucide-react';
-import { getImageUrl } from '../utils/imageUtils'; // Import de la fonction utilitaire
+import { getImageUrl } from '../utils/imageUtils';
 
 export default function FilEvalaShorts() {
   const [shorts, setShorts] = useState<Short[]>([]);
+  const [playingId, setPlayingId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchShorts = async () => {
@@ -54,17 +55,36 @@ export default function FilEvalaShorts() {
               <p className="font-sans text-sm text-[#222222] whitespace-pre-wrap">{post.text}</p>
             </div>
 
-            {post.processed_path && (
-              <div className="relative bg-black w-full aspect-[4/5] flex items-center justify-center overflow-hidden group cursor-pointer">
-                <img src={getImageUrl(post.thumbnail_path, 'https://via.placeholder.com/400x500')} alt="Video thumbnail" className="w-full h-full object-cover opacity-80 group-hover:opacity-60 transition-opacity" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/40 group-hover:scale-110 transition-transform">
-                    <Play className="w-8 h-8 text-white fill-current ml-1" />
-                  </div>
-                </div>
-                {post.duration && (
-                  <div className="absolute bottom-3 right-3 bg-black/70 text-white text-[10px] font-mono px-2 py-1 rounded-sm backdrop-blur-sm">
-                    0:{post.duration.toString().padStart(2, '0')}
+            {post.video_url && (
+              <div className="relative bg-black w-full aspect-[4/5] flex items-center justify-center overflow-hidden group">
+                {playingId === post.id ? (
+                  <video 
+                    src={post.video_url} 
+                    controls 
+                    autoPlay 
+                    className="w-full h-full object-contain"
+                    onEnded={() => setPlayingId(null)}
+                  />
+                ) : (
+                  <div 
+                    className="w-full h-full relative cursor-pointer"
+                    onClick={() => setPlayingId(post.id)}
+                  >
+                    <img 
+                      src={post.thumbnail_url || getImageUrl(post.thumbnail_path, 'https://via.placeholder.com/400x500')} 
+                      alt="Video thumbnail" 
+                      className="w-full h-full object-cover opacity-80 group-hover:opacity-60 transition-opacity" 
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/40 group-hover:scale-110 transition-transform">
+                        <Play className="w-8 h-8 text-white fill-current ml-1" />
+                      </div>
+                    </div>
+                    {post.duration && (
+                      <div className="absolute bottom-3 right-3 bg-black/70 text-white text-[10px] font-mono px-2 py-1 rounded-sm backdrop-blur-sm">
+                        0:{post.duration.toString().padStart(2, '0')}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

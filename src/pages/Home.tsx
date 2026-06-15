@@ -6,7 +6,7 @@ import FlashInfoFeed from '../components/FlashInfoFeed';
 import NewsSection from '../components/NewsSection';
 import FilEvalaShorts from '../components/FilEvalaShorts';
 import BonsPlansKara from '../components/BonsPlansKara';
-// import UsefulNumbersStack from '../components/UsefulNumbersStack';
+ import UsefulNumbersStack from '../components/UsefulNumbersStack';
 import Footer from '../components/Footer';
 import OfficialBanner from '../components/OfficialBanner';
 import ArticleModal from '../components/Modal/ArticleModal';
@@ -81,9 +81,9 @@ export default function HomePage() {
             <BonsPlansKara />
           </div>
 
-          {/* <div id="component-useful-numbers" className={cx('order-4 lg:order-none lg:col-span-1 lg:col-start-2 lg:row-start-2 lg:row-span-1 transition-all duration-500 rounded-sm', highlightClass(highlightedId === 'component-useful-numbers'))}>
+           <div id="component-useful-numbers" className={cx('order-4 lg:order-none lg:col-span-1 lg:col-start-2 lg:row-start-2 lg:row-span-1 transition-all duration-500 rounded-sm', highlightClass(highlightedId === 'component-useful-numbers'))}>
             <UsefulNumbersStack />
-          </div> */}
+          </div> 
 
           <div className="hidden lg:block lg:col-span-1 lg:col-start-5 lg:row-start-3">
             <SponsorBanner />

@@ -12,7 +12,13 @@ import SponsorForm from '../features/sponsors/components/SponsorForm';
 import { AdminBonPlans } from '../pages/admin/AdminBonPlans';
 import BonPlanForm from '../features/bon-plans/components/BonPlanForm';
 import { bonPlanService } from '../services/bonPlanService';
+import AdminFlashInfo from '../pages/admin/AdminFlashInfo';
+import AdminShorts from '../pages/admin/AdminShorts';
 
+// NOUVEAUX IMPORTS POUR FLASH INFO
+import { FlashInfoForm } from '../features/flash-info/components/flashInfoForm';
+
+import UsefulNumberList from '../features/useful-numbers/pages/UsefulNumberList';
 const MainLayout = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -38,6 +44,13 @@ const MainLayout = () => {
               <Route path="/admin/bon-plans" element={<AdminBonPlans />} />
               <Route path="/admin/bonplans/new" element={<BonPlanNewWrapper />} />
               <Route path="/admin/bonplans/:id/edit" element={<BonPlanEditWrapper />} />
+              
+              {/* ROUTES FLASH INFO AJOUTÉES */}
+              <Route path="/admin/flash-info" element={<AdminFlashInfo />} />
+              <Route path="/admin/useful-numbers" element={<UsefulNumberList />} />
+              <Route path="/admin/shorts" element={<AdminShorts />} />
+              <Route path="/admin/flash-info/new" element={<FlashInfoNewWrapper />} />
+
               <Route 
                 path="/admin/sponsors/new" 
                 element={
@@ -64,8 +77,7 @@ const MainLayout = () => {
 };
 
 /**
- * Petit composant wrapper pour l'édition car SponsorForm a besoin 
- * de l'objet sponsor complet, et non juste de l'ID.
+ * Wrappers pour les chargements et structures graphiques des formulaires
  */
 import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
@@ -78,8 +90,6 @@ const SponsorEditWrapper = () => {
   const [sponsor, setSponsor] = useState<Sponsor | null>(null);
 
   useEffect(() => {
-    // Ici, il faudrait idéalement une méthode getById dans ton service
-    // Pour l'exemple, on peut recharger la liste ou adapter le service
     sponsorService.getPublicSponsors().then(list => {
       const found = list.find(s => s.id === Number(id));
       if (found) setSponsor(found);
@@ -130,6 +140,23 @@ const BonPlanEditWrapper = () => {
       <h1 className="text-2xl font-bold mb-6">Modifier le Bon Plan : {bonPlan.title}</h1>
       <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
         <BonPlanForm bonPlan={bonPlan} onSuccess={() => navigate('/admin/bons-plans')} onCancel={() => navigate('/admin/bons-plans')} />
+      </div>
+    </div>
+  );
+};
+
+/**
+ * WRAPPER POUR CRÉATION FLASH INFO (Structure Card)
+ */
+const FlashInfoNewWrapper = () => {
+  const navigate = useNavigate();
+  return (
+    <div className="p-6 max-w-4xl mx-auto">
+      <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+        <FlashInfoForm 
+          onSuccess={() => navigate('/admin/flash-info')} 
+          onCancel={() => navigate('/admin/flash-info')} 
+        />
       </div>
     </div>
   );

@@ -4,14 +4,18 @@ import {
   FileText, 
   Award, 
   Tag, 
+  Zap,
   PhoneCall, 
   LayoutDashboard,
   ArrowRight,
   Globe,
   Settings,
   ShieldCheck,
-  Users
+  Users,
+  Video
 } from 'lucide-react';
+
+
 import { useAuth } from '@/store';
 
 export const AdminHome: React.FC = () => {
@@ -49,6 +53,15 @@ export const AdminHome: React.FC = () => {
       iconColor: 'text-blue-600',
     },
     {
+      id: 'flash-info',
+      title: 'Gestion Flash Infos',
+      description: 'Créez et gérez les informations flash diffusées en temps réel aux festivaliers.',
+      icon: <Zap className="w-6 h-6" />,
+      link: '/admin/flash-info',
+      bgColor: 'bg-orange-50',
+      iconColor: 'text-orange-600',
+    },
+    {
       id: 'sponsors',
       title: 'Gestion des Sponsors',
       description: 'Configurez les bannières publicitaires et les partenaires de l\'événement.',
@@ -72,8 +85,17 @@ export const AdminHome: React.FC = () => {
       description: 'Mettez à jour les contacts d\'urgence et les numéros de services utiles.',
       icon: <PhoneCall className="w-6 h-6" />,
       link: '/admin/useful-numbers',
-      bgColor: 'bg-purple-50',
+      bgColor: 'bg-indigo-50',
       iconColor: 'text-purple-600',
+    },
+    {
+      id: 'shorts',
+      title: 'Gestion des Shorts',
+      description: 'Importez et gérez les vidéos courtes (Shorts) pour dynamiser l\'application.',
+      icon: <Video className="w-6 h-6" />,
+      link: '/admin/shorts',
+      bgColor: 'bg-pink-50',
+      iconColor: 'text-pink-600',
     },
   ];
 
