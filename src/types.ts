@@ -1,30 +1,103 @@
+
 export interface User {
   id: number;
-  name: string;
+  name: string | null;
   username: string;
+  phone: string | null;
+  role: string;
+  permissions: string[]; // ← le tableau qui sert a gerer les permissions laravel
+  is_active: boolean;
   avatar_url?: string | null;
-  role:string;
-  permissions: string[]; // Permissions Spatie envoyées par le backend
+  created_at: string;
+  updated_at: string;
+}
+// export interface Article {
+//   id: number;
+//   user_id: number;
+//   title: string;
+//   slug: string;
+//   summary: string | null;
+//   content: string | null;
+//   image_path: string | null;
+//   is_hero: boolean;
+//   created_at: string;
+//   updated_at: string;
+//   user?: User; // via Eager Loading
+// }
+
+// types/index.ts
+export interface Article {
+  id: number;
+  title: string;
+  slug?: string;
+  summary: string | null;
+  content: string;
+  image_path: string;
+  is_hero: boolean;
+  category?: string | null;
+  user_id: number;
+  published_at?: string | null;
   created_at: string;
   updated_at: string;
   
+  likes_count: number;
+  comments_count: number;
+  is_liked_by_user: boolean;
+  
+  // Relations
+  user?: {
+    id: number;
+    name: string;
+    username: string;
+    role?: string;
+  };
+  comments?: Comment[];
+  likes?: Like[];
 }
 
-export interface Article {
+export interface Comment {
   id: number;
   user_id: number;
-  title: string;
-  slug: string;
-  summary: string | null;
-  content: string | null;
-  image_path: string | null;
-  is_hero: boolean;
+  article_id: number;
+  parent_id: number | null;
+  content: string;
   created_at: string;
   updated_at: string;
-  user?: User; // via Eager Loading
+  user?: {
+    id: number;
+    name: string;
+    username: string;
+  };
+  replies?: Comment[];
 }
 
+export interface Like {
+  id: number;
+  user_id: number;
+  article_id: number;
+  created_at: string;
+  updated_at: string;
+  user?: {
+    id: number;
+    name: string;
+    username: string;
+  };
+}
 
+// ✅ Response standard de l'API
+export interface ApiResponse<T> {
+  data: T;
+  message?: string;
+  status?: number;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  current_page: number;
+  last_page: number;
+  per_page: number;
+  total: number;
+}
 
 export interface Short {
   id: number;

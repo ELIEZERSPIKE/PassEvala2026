@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { UserPlus, Mail, Lock, Phone, AlertCircle, Loader, User } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../services/authService';
 import { useAuth } from '../../../store/authContext';
 import { SignupRequest } from '../../../types';
+import { UserPlus, Mail, Lock, Phone, AlertCircle, Loader, ArrowLeft, User } from 'lucide-react';
+import { useToast } from '../../../hooks/useToast';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -17,6 +18,7 @@ const Signup = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { showSuccess, showError, showLoading, dismiss } = useToast();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -31,18 +33,22 @@ const Signup = () => {
     setError('');
     setLoading(true);
 
-    // Validation locale
     if (formData.password !== formData.password_confirmation) {
       setError('Les mots de passe ne correspondent pas');
+      showError('❌ Les mots de passe ne correspondent pas');
       setLoading(false);
       return;
     }
 
     if (formData.password.length < 6) {
       setError('Le mot de passe doit contenir au moins 6 caractères');
+      showError('❌ Le mot de passe doit contenir au moins 6 caractères');
       setLoading(false);
       return;
     }
+
+    // ✅ Afficher le toast de chargement
+    const loadingId = showLoading(' Création de votre compte...');
 
     try {
       const userData: SignupRequest = {
@@ -54,28 +60,51 @@ const Signup = () => {
       };
 
       const response = await authService.signup(userData);
-
-      // Utiliser la fonction login du contexte pour mettre à jour l'état global
+      
+      // ✅ Supprimer le toast de chargement
+      dismiss(loadingId);
+      
+      // ✅ Toast de succès
+      showSuccess(`🎉 Bienvenue ${response.data.name || response.data.username} ! Votre compte a été créé avec succès.`);
+      
       login(response.data, response.token);
-
-      // Rediriger vers la page d'accueil
-      navigate('/');
+      
+      setTimeout(() => {
+        navigate('/');
+      }, 1500);
+      
     } catch (err: any) {
+      // ✅ Supprimer le toast de chargement
+      dismiss(loadingId);
+      
       const errorMessage =
         err.response?.data?.message ||
         err.response?.data?.errors?.[Object.keys(err.response?.data?.errors || {})[0]]?.[0] ||
         err.message ||
-        'Erreur lors de l\'inscription';
+        "Erreur lors de l'inscription";
+      
       setError(errorMessage);
+      showError(`❌ ${errorMessage}`);
+      
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 py-12 px-4 sm:px-6 lg:px-8">
+
+      {/* Lien retour accueil */}
+      <div className="w-full max-w-md mb-4">
+        <Link to="/"
+          className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-emerald-600 transition-colors">
+          <ArrowLeft className="w-4 h-4" />
+          Retour à l'accueil
+        </Link>
+      </div>
+
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-lg shadow-xl">
-        {/* Header avec icône */}
+        {/* Header */}
         <div className="flex flex-col items-center">
           <div className="bg-green-600 p-3 rounded-full mb-4">
             <UserPlus className="w-6 h-6 text-white" />
@@ -217,12 +246,9 @@ const Signup = () => {
           <div className="text-center">
             <p className="text-sm text-gray-600">
               Vous avez déjà un compte ?{' '}
-              <a
-                href="/login"
-                className="font-medium text-green-600 hover:text-green-700 transition"
-              >
+              <Link to="/login" className="font-medium text-green-600 hover:text-green-700 transition">
                 Se connecter
-              </a>
+              </Link>
             </p>
           </div>
         </form>

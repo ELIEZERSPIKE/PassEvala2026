@@ -19,9 +19,9 @@ export default function Footer() {
         {/* Block 1: Brand & Slogan */}
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 bg-[#222222] text-white flex items-center justify-center font-display font-extrabold text-sm rounded-sm">
+            {/* <div className="h-8 w-8 bg-[#222222] text-white flex items-center justify-center font-display font-extrabold text-sm rounded-sm">
               PA
-            </div>
+            </div> */}
             <span className="font-display font-black text-lg tracking-tight text-[#222222] uppercase">
               PASS AFRICA
             </span>

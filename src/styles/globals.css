@@ -1,0 +1,128 @@
+@import "tailwindcss";
+
+@layer components {
+
+  .evala-auth-bg {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    background: linear-gradient(135deg, #FDF0EB 0%, #FEF3E2 50%, #F5E6D3 100%);
+  }
+
+  .evala-auth-card {
+    max-width: 28rem;
+    width: 100%;
+    background: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+    border: 1px solid #E8D5C4;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .evala-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    outline: none;
+    transition: all 0.2s;
+    border: 1.5px solid #E8D5C4;
+    background: #FDFAF7;
+    color: #1A0A00;
+    font-size: 0.875rem;
+  }
+  .evala-input::placeholder {
+    color: #8C6A52;
+  }
+  .evala-input:focus {
+    border-color: #8B2500;
+    box-shadow: 0 0 0 3px rgba(139, 37, 0, 0.12);
+  }
+
+  .evala-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #1A0A00;
+  }
+
+  .evala-btn-primary {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    border-radius: 0.75rem;
+    transition: all 0.2s;
+    background: #8B2500;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+  .evala-btn-primary:hover:not(:disabled) {
+    background: #6B1C00;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(139, 37, 0, 0.3);
+  }
+  .evala-btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .evala-alert-error {
+    border-radius: 0.75rem;
+    padding: 1rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    background: #FFF0EE;
+    border: 1px solid #FFCDC4;
+  }
+
+  .evala-icon-badge {
+    padding: 0.75rem;
+    border-radius: 9999px;
+    margin-bottom: 1rem;
+    background: #8B2500;
+  }
+
+  .evala-link {
+    font-weight: 600;
+    transition: color 0.2s;
+    color: #8B2500;
+  }
+  .evala-link:hover {
+    color: #D4822A;
+  }
+
+  .evala-card {
+    border-radius: 1rem;
+    overflow: hidden;
+    transition: all 0.2s;
+    background: white;
+    border: 1px solid #E8D5C4;
+    box-shadow: 0 2px 8px rgba(26, 10, 0, 0.06);
+  }
+  .evala-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(26, 10, 0, 0.12);
+  }
+
+  .evala-title {
+    font-size: 1.875rem;
+    font-weight: 800;
+    color: #1A0A00;
+  }
+
+  .evala-subtitle {
+    font-size: 0.875rem;
+    color: #8C6A52;
+  }
+}

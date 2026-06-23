@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import usefulNumberService from '../services/usefulNumberService';
+import { usefulNumberApi } from '../api/usefullNumberApi';
 import { UsefulNumber, UsefulNumberPayload } from '../types/usefulNumber';
 
 export const useNumbers = () => {
@@ -11,7 +11,7 @@ export const useNumbers = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await usefulNumberService.getAll();
+      const res = await usefulNumberApi.getAll();
       setNumbers(res.data);
     } catch {
       setError('Erreur lors du chargement des numéros.');
@@ -23,19 +23,19 @@ export const useNumbers = () => {
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
   const createNumber = async (data: UsefulNumberPayload) => {
-    const res = await usefulNumberService.create(data);
+    const res = await usefulNumberApi.create(data);
     setNumbers(prev => [res.data, ...prev]);
     return res;
   };
 
   const updateNumber = async (id: number, data: Partial<UsefulNumberPayload>) => {
-    const res = await usefulNumberService.update(id, data);
+    const res = await usefulNumberApi.update(id, data);
     setNumbers(prev => prev.map(n => n.id === id ? res.data : n));
     return res;
   };
 
   const deleteNumber = async (id: number) => {
-    await usefulNumberService.delete(id);
+    await usefulNumberApi.delete(id);
     setNumbers(prev => prev.filter(n => n.id !== id));
   };
 

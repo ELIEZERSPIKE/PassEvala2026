@@ -132,7 +132,7 @@ export const SponsorsPage: React.FC = () => {
                               alt={sponsor.name} 
                               className="w-full h-full object-contain p-1"
                               onError={(e) => {
-                                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/800x400?text=Image+Indisponible';
+                                (e.target as HTMLImageElement).src = 'https://placehold.co/800x400?text=Image+Indisponible';
                               }}
                             />
                           ) : (

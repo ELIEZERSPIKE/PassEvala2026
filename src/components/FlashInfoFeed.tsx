@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { FlashInfo, Article } from '../types';
+import { FlashInfo } from '../types';
 import { flashInfoService } from '../services';
 import { Zap } from 'lucide-react';
 
 interface FlashInfoFeedProps {
-  onArticleClick: (article: Article) => void;
+  onFlashInfoClick: (item: FlashInfo) => void;
 }
 
-export default function FlashInfoFeed({ onArticleClick }: FlashInfoFeedProps) {
+export default function FlashInfoFeed({ onFlashInfoClick }: FlashInfoFeedProps) {
   const [flashInfos, setFlashInfos] = useState<FlashInfo[]>([]);
 
   useEffect(() => {
@@ -38,18 +38,7 @@ export default function FlashInfoFeed({ onArticleClick }: FlashInfoFeedProps) {
       </div>
       <div className="flex flex-col divide-y divide-gray-100 max-h-[400px] overflow-y-auto">
         {flashInfos.map((item) => (
-          <div key={item.id} className="p-4 hover:bg-gray-50 transition-colors cursor-pointer group" onClick={() => onArticleClick({
-            id: item.id + 10000, // ID temporaire pour éviter les conflits
-            user_id: 1,
-            title: item.title,
-            content: item.link || 'Aucun contenu détaillé.',
-            slug: `flash-${item.id}`,
-            summary: item.title,
-            image_path: null, // Déclenchera l'affichage du placeholder via getImageUrl
-            is_hero: false,
-            created_at: item.created_at,
-            updated_at: item.created_at,
-          })}>
+          <div key={item.id} className="p-4 hover:bg-gray-50 transition-colors cursor-pointer group" onClick={() => onFlashInfoClick(item)}>
             <div className="flex items-center gap-2 mb-1.5">
               <span className="font-mono text-[10px] text-gray-500">{new Date(item.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
             </div>
@@ -60,3 +49,4 @@ export default function FlashInfoFeed({ onArticleClick }: FlashInfoFeedProps) {
     </div>
   );
 }
+
