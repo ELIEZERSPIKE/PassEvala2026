@@ -1,44 +1,61 @@
+// hooks/useShortForm.ts (déjà existant)
 import { useState } from 'react';
-import { Short, ShortPayload, ShortStatus, ShortUpdatePayload } from '../types/short';
-
-interface ShortFormState {
-  text: string;
-  video: File | null;
-  status: ShortStatus;
-}
+import { Short, ShortPayload, ShortUpdatePayload } from '../types/short';
 
 export const useShortForm = (initial?: Short) => {
-  const [form, setForm] = useState<ShortFormState>({
+  const isEdit = !!initial;
+  
+  const [form, setForm] = useState({
     text: initial?.text ?? '',
-    video: null,
     status: initial?.status ?? 'draft',
+    video: null as File | null,
   });
-  const [errors, setErrors] = useState<Partial<Record<keyof ShortFormState, string>>>({});
 
-  const handleChange = (field: keyof ShortFormState, value: string | File | null) => {
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const handleChange = (field: keyof typeof form, value: any) => {
     setForm(prev => ({ ...prev, [field]: value }));
-    setErrors(prev => ({ ...prev, [field]: undefined }));
+    setErrors(prev => ({ ...prev, [field]: '' }));
   };
 
-  const validate = (isEdit = false): boolean => {
-    const newErrors: Partial<Record<keyof ShortFormState, string>> = {};
-    if (!isEdit && !form.video) newErrors.video = 'Une vidéo est requise.';
+  const validate = (): Record<string, string> => {
+    const newErrors: Record<string, string> = {};
+    if (!isEdit && !form.video) newErrors.video = 'Une vidéo est requise';
+    if (form.video && form.video.size > 100 * 1024 * 1024) {
+      newErrors.video = 'La vidéo ne doit pas dépasser 100 Mo';
+    }
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return newErrors;
   };
 
-  const reset = () => setForm({ text: '', video: null, status: 'draft' });
+  const reset = () => {
+    setForm({ text: '', status: 'draft', video: null });
+    setErrors({});
+  };
 
-  const toCreatePayload = (): ShortPayload => ({
-    text: form.text || null,
-    video: form.video!,
-  });
+  const getPayload = (): ShortPayload | ShortUpdatePayload => {
+    if (isEdit) {
+      const payload: ShortUpdatePayload = {
+        text: form.text,
+        status: form.status as 'draft' | 'published' | 'archived',
+      };
+      if (form.video) payload.video = form.video;
+      return payload;
+    }
+    if (!form.video) throw new Error('Une vidéo est requise');
+    return {
+      text: form.text || undefined,
+      video: form.video,
+    };
+  };
 
-  const toUpdatePayload = (): ShortUpdatePayload => ({
-    text: form.text || null,
-    status: form.status,
-    ...(form.video ? { video: form.video } : {}),
-  });
-
-  return { form, errors, handleChange, validate, reset, toCreatePayload, toUpdatePayload };
+  return { 
+    form, 
+    errors, 
+    isEdit, 
+    handleChange, 
+    validate, 
+    reset, 
+    getPayload 
+  };
 };

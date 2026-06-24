@@ -1,3 +1,4 @@
+// MainLayout.tsx
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
@@ -22,6 +23,9 @@ import UsefulNumberList from '../features/useful-numbers/pages/UsefulNumberList'
 import { sponsorService } from '../services/sponsorService';
 import { Sponsor } from '../features/sponsors/components/SponsorForm';
 
+// ✅ Import du composant ShareShort
+import ShareShort from '../features/shorts/pages/ShareShort';
+
 import '../styles/globals.css';
 
 const MainLayout = () => {
@@ -41,6 +45,9 @@ const MainLayout = () => {
       <main className="flex-grow">
         <Routes>
           <Route path="/" element={<HomePage />} />
+
+          {/* ✅ Route de partage (accessible à tous les utilisateurs connectés) */}
+          <Route path="/partager/short" element={<ShareShort />} />
 
           {isAdmin ? (
             <>
