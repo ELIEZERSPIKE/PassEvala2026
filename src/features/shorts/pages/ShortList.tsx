@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, RefreshCw, Filter, Search, Grid, List, LayoutGrid } from 'lucide-react';
+import React, { useState } from 'react';
+import { Plus, RefreshCw, Search, List, LayoutGrid } from 'lucide-react';
 import { useShorts } from '../hooks/useShorts';
 import ShortCard from '../components/ShortCard';
 import ShortForm from '../components/ShortForm';
@@ -351,9 +351,6 @@ const ShortList: React.FC = () => {
 
 export default ShortList;
 
-
-
-// import React, { useState } from 'react';
 // import { Plus, RefreshCw } from 'lucide-react';
 // import { useShorts } from '../hooks/useShorts';
 // import ShortCard from '../components/ShortCard';

@@ -143,23 +143,17 @@ export interface PaginatedResponse<T> {
 //   video?: File | null;
 // }
 // types/short.ts
-export interface Short {
-  id: number;
-  user_id: number;
-  text: string | null;
-  status: 'draft' | 'published' | 'archived';
-  raw_path: string | null;
-  processed_path: string | null;
-  thumbnail_path: string | null;
-    duration: number | null; // ✅ Ajouter cette ligne
 
-  created_at: string;
-  updated_at: string;
-  user?: {
-    id: number;
-    name: string;
-    username: string;
-  };
+interface Short {
+  id: number;
+  text: string | null;
+  video_url: string | null;
+  thumbnail_url: string | null;
+  duration: number | null;
+  likes_count: number;        // 
+  comments_count: number;     // 
+  reactions: Record<string, number> | null; // 
+  user: { id: number; name: string; username: string };
 }
 
 export interface ShortPayload {

@@ -58,3 +58,5 @@ export const BACKEND_URL = (() => {
   const base = import.meta.env.VITE_API_URL || 'http://localhost:8000';
   return base.replace(/\/api\/?$/, '').replace(/\/$/, '');
 })();
+
+export default getImageUrl;

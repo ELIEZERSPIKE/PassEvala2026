@@ -1,0 +1,169 @@
+// features/shorts/components/ShortPlayer.tsx
+import React, { useState, useEffect, useRef, useCallback, useImperativeHandle, forwardRef } from 'react';
+import { Play, RotateCcw, Volume2, VolumeX, Loader2 } from 'lucide-react';
+import { Short } from '../types/short';
+import getImageUrl from '@/utils/imageUtils';
+
+interface Props {
+  short: Short;
+  isActive: boolean;
+}
+
+export interface ShortPlayerHandle {
+  togglePlay: () => void;
+}
+
+type PlayState = 'idle' | 'playing' | 'ended';
+
+const ShortPlayer = forwardRef<ShortPlayerHandle, Props>(({ short, isActive }, ref) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [playState, setPlayState] = useState<PlayState>('idle');
+  const [muted, setMuted] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const videoUrl = getImageUrl(short.processed_path, '');
+  const thumbUrl = getImageUrl(short.thumbnail_path, '');
+
+  // ✅ Initiale : username en priorité, sinon name, sinon 'U'
+  const displayInitial = (short.user?.username ?? short.user?.name ?? 'U').charAt(0).toUpperCase();
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (isActive && playState !== 'ended') {
+      video.play().catch(err => {
+        console.error(`❌ Lecture vidéo ${short.id}:`, err);
+        setError(err.message);
+      });
+      setPlayState('playing');
+    } else {
+      video.pause();
+      if (!isActive) {
+        video.currentTime = 0;
+        setPlayState('idle');
+      }
+    }
+  }, [isActive, short.id]);
+
+  const handleReplay = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.currentTime = 0;
+    video.play().catch(console.error);
+    setPlayState('playing');
+  }, []);
+
+  const handleClick = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (playState === 'ended') { handleReplay(); return; }
+    if (playState === 'playing') {
+      video.pause();
+      setPlayState('idle');
+    } else {
+      video.play().catch(console.error);
+      setPlayState('playing');
+    }
+  }, [playState, handleReplay]);
+
+  useImperativeHandle(ref, () => ({
+    togglePlay: handleClick,
+  }), [handleClick]);
+
+  return (
+    <div className="relative w-full h-full bg-black overflow-hidden">
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-10">
+          <Loader2 size={32} className="animate-spin text-white" />
+        </div>
+      )}
+      {error && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-10">
+          <div className="text-center text-white">
+            <p className="text-sm">⚠️ {error}</p>
+            <p className="text-xs text-gray-400 mt-1">ID : {short.id}</p>
+          </div>
+        </div>
+      )}
+      <video
+        ref={videoRef}
+        src={videoUrl}
+        poster={thumbUrl || undefined}
+        muted={muted}
+        playsInline
+        loop={false}
+        onClick={handleClick}
+        onEnded={() => setPlayState('ended')}
+        onLoadedData={() => { setIsLoading(false); setError(null); }}
+        onError={() => { setIsLoading(false); setError('Impossible de charger la vidéo'); }}
+        className="w-full h-full object-contain cursor-pointer"
+      />
+      {playState === 'idle' && !isLoading && !error && (
+        <div className="absolute inset-0 flex items-center justify-center cursor-pointer" onClick={handleClick}>
+          <div className="w-20 h-20 rounded-full flex items-center justify-center"
+            style={{ background: 'rgba(0,0,0,0.45)', border: '2px solid rgba(255,255,255,0.3)' }}>
+            <Play className="w-9 h-9 text-white fill-current ml-1" />
+          </div>
+        </div>
+      )}
+      {playState === 'ended' && (
+        <div className="absolute inset-0 flex items-center justify-center cursor-pointer" onClick={handleReplay}
+          style={{ background: 'rgba(0,0,0,0.5)' }}>
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-20 h-20 rounded-full flex items-center justify-center"
+              style={{ background: 'rgba(212,130,42,0.85)', border: '2px solid rgba(255,255,255,0.4)' }}>
+              <RotateCcw className="w-9 h-9 text-white" />
+            </div>
+            <span className="text-white text-xs font-bold uppercase tracking-widest">Rejouer</span>
+          </div>
+        </div>
+      )}
+      <div className="absolute bottom-0 left-0 right-0 px-4 pb-5 pt-12"
+        style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 100%)' }}>
+        <div className="flex items-center gap-2 mb-1">
+
+          {/* Avatar : initiale du displayName */}
+          <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black text-white"
+            style={{ background: '#8B2500' }}>
+            {displayInitial}
+          </div>
+
+          {/* ✅ @username en priorité, toujours affiché si dispo */}
+          {short.user?.username && (
+            <span className="text-xs font-bold" style={{ color: '#D4822A' }}>
+              @{short.user.username}
+            </span>
+          )}
+
+          {/* ✅ name affiché si dispo (en complément ou seul si pas d'username) */}
+          {short.user?.name && (
+            <span className="text-white text-xs">{short.user.name}</span>
+          )}
+
+        </div>
+        {short.text && (
+          <p className="text-white text-xs leading-relaxed line-clamp-2">{short.text}</p>
+        )}
+        {short.duration && (() => {
+          const mins = Math.floor(short.duration! / 60);
+          const secs = Math.floor(short.duration! % 60);
+          return (
+            <span className="text-[10px] font-mono mt-1 block" style={{ color: '#8C6A52' }}>
+              {mins > 0 ? `${mins}:${secs.toString().padStart(2, '0')}` : `0:${secs.toString().padStart(2, '0')}`}
+            </span>
+          );
+        })()}
+      </div>
+      <button
+        onClick={e => { e.stopPropagation(); setMuted(m => !m); }}
+        className="absolute top-3 right-3 p-2 rounded-full"
+        style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.2)' }}>
+        {muted ? <VolumeX className="w-4 h-4 text-white" /> : <Volume2 className="w-4 h-4 text-white" />}
+      </button>
+    </div>
+  );
+});
+
+ShortPlayer.displayName = 'ShortPlayer';
+export default ShortPlayer;

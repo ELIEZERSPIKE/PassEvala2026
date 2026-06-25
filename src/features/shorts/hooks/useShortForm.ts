@@ -1,10 +1,10 @@
-// hooks/useShortForm.ts (déjà existant)
+// features/shorts/hooks/useShortForm.ts
 import { useState } from 'react';
 import { Short, ShortPayload, ShortUpdatePayload } from '../types/short';
 
 export const useShortForm = (initial?: Short) => {
   const isEdit = !!initial;
-  
+
   const [form, setForm] = useState({
     text: initial?.text ?? '',
     status: initial?.status ?? 'draft',
@@ -49,13 +49,13 @@ export const useShortForm = (initial?: Short) => {
     };
   };
 
-  return { 
-    form, 
-    errors, 
-    isEdit, 
-    handleChange, 
-    validate, 
-    reset, 
-    getPayload 
+  return {
+    form,
+    errors,
+    isEdit,
+    handleChange,
+    validate,
+    reset,
+    getPayload,
   };
 };

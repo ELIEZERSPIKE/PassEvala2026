@@ -24,7 +24,7 @@ export default function NewsSection({ onArticleClick }: NewsSectionProps) {
     const fetchArticles = async () => {
       try {
         const data = await articleService.getArticles();
-        console.log('📡 Articles chargés:', data);
+        console.log(' Articles chargés:', data);
         setArticles(data);
       } catch (err) {
         console.error('❌ Erreur chargement articles:', err);

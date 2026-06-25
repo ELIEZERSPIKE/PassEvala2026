@@ -1,174 +1,113 @@
+// features/shorts/components/FilEvalaShorts.tsx
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Short } from '../types';
-import { shortService } from '../services';
-import { Play, RotateCcw, Volume2, VolumeX, Plus } from 'lucide-react';
-import { getImageUrl } from '../utils/imageUtils';
+import { Play, Plus, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Short } from '@/features/shorts/types/short';
+import shortService from '@/features/shorts/services/shortService';
+import ShortItem from '@/features/shorts/components/ShortItem';
 
-// ─── Player individuel ────────────────────────────────────────────────────────
+const SLIDE_HEIGHT = 400;
 
-interface ShortPlayerProps {
-  short: Short;
-  isActive: boolean;
+// ─── Header ──────────────────────────────────────────────────────────────────
+
+interface HeaderProps { 
+  count?: number; 
+  isLoading?: boolean;
 }
 
-const ShortPlayer: React.FC<ShortPlayerProps> = ({ short, isActive }) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [state, setState] = useState<'idle' | 'playing' | 'ended'>('idle');
-  const [muted, setMuted] = useState(true);
-
-  const videoUrl = getImageUrl(short.processed_path, '');
-  const thumbUrl = getImageUrl(short.thumbnail_path, '');
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    if (isActive && state !== 'ended') {
-      video.play().catch(() => {});
-      setState('playing');
-    } else {
-      video.pause();
-      if (!isActive) {
-        video.currentTime = 0;
-        setState('idle');
-      }
-    }
-  }, [isActive]);
-
-  const handleReplay = useCallback(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    video.currentTime = 0;
-    video.play().catch(() => {});
-    setState('playing');
-  }, []);
-
-  const handleClick = useCallback(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    if (state === 'ended') { handleReplay(); return; }
-    if (state === 'playing') {
-      video.pause();
-      setState('idle');
-    } else {
-      video.play().catch(() => {});
-      setState('playing');
-    }
-  }, [state, handleReplay]);
-
-  return (
-    <div className="relative w-full h-full bg-black overflow-hidden">
-      {/* Vidéo */}
-      {videoUrl && (
-        <video
-          ref={videoRef}
-          src={videoUrl}
-          poster={thumbUrl || undefined}
-          muted={muted}
-          playsInline
-          loop={false}
-          onClick={handleClick}
-          onEnded={() => setState('ended')}
-          className="w-full h-full object-contain cursor-pointer"
-        />
-      )}
-
-      {/* Overlay pause/play */}
-      {state === 'idle' && (
-        <div
-          className="absolute inset-0 flex items-center justify-center cursor-pointer"
-          onClick={handleClick}
-        >
-          <div className="w-20 h-20 rounded-full flex items-center justify-center"
-            style={{ background: 'rgba(0,0,0,0.45)', border: '2px solid rgba(255,255,255,0.3)' }}>
-            <Play className="w-9 h-9 text-white fill-current ml-1" />
-          </div>
-        </div>
-      )}
-
-      {/* Overlay replay */}
-      {state === 'ended' && (
-        <div
-          className="absolute inset-0 flex items-center justify-center cursor-pointer"
-          onClick={handleReplay}
-          style={{ background: 'rgba(0,0,0,0.5)' }}
-        >
-          <div className="flex flex-col items-center gap-3">
-            <div className="w-20 h-20 rounded-full flex items-center justify-center"
-              style={{ background: 'rgba(212,130,42,0.85)', border: '2px solid rgba(255,255,255,0.4)' }}>
-              <RotateCcw className="w-9 h-9 text-white" />
-            </div>
-            <span className="text-white text-xs font-bold uppercase tracking-widest">Rejouer</span>
-          </div>
-        </div>
-      )}
-
-      {/* Infos en bas */}
-      <div
-        className="absolute bottom-0 left-0 right-0 px-4 pb-5 pt-12"
-        style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 100%)' }}
+const ShortsHeader: React.FC<HeaderProps> = ({ count, isLoading }) => (
+  <motion.div 
+    initial={{ opacity: 0, y: -20 }}
+    animate={{ opacity: 1, y: 0 }}
+    className="flex items-center justify-between border-b pb-3"
+    style={{ borderColor: 'rgba(59, 130, 246, 0.2)' }}
+  >
+    <h2 className="font-bold text-base uppercase tracking-wide flex items-center gap-2"
+      style={{ color: '#1A2A4A' }}
+    >
+      <motion.div
+        animate={{ 
+          scale: [1, 1.1, 1],
+          rotate: [0, 5, -5, 0]
+        }}
+        transition={{ 
+          duration: 2,
+          repeat: Infinity,
+          repeatDelay: 3
+        }}
       >
-        <div className="flex items-center gap-2 mb-1">
-          <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black text-white"
-            style={{ background: '#8B2500' }}>
-            {short.user?.name?.charAt(0).toUpperCase() ?? 'U'}
-          </div>
-          <span className="text-white text-xs font-bold">{short.user?.name ?? 'Inconnu'}</span>
-          <span className="text-xs" style={{ color: '#D4822A' }}>@{short.user?.username ?? 'user'}</span>
-        </div>
-        {short.text && (
-          <p className="text-white text-xs leading-relaxed line-clamp-2">{short.text}</p>
-        )}
-        {short.duration && (
-          <span className="text-[10px] font-mono mt-1 block" style={{ color: '#8C6A52' }}>
-            0:{short.duration.toString().padStart(2, '0')}
-          </span>
-        )}
-      </div>
-
-      {/* Bouton mute */}
-      <button
-        onClick={(e) => { e.stopPropagation(); setMuted(m => !m); }}
-        className="absolute top-3 right-3 p-2 rounded-full"
-        style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.2)' }}
+        <Play className="w-4 h-4" style={{ color: '#2563EB', fill: '#2563EB' }} />
+      </motion.div>
+      <span className="font-display font-black tracking-wide" style={{ color: '#0A1628' }}>
+        Fil <span style={{ color: '#2563EB' }}>Evala</span>
+      </span>
+    </h2>
+    <div className="flex items-center gap-2">
+      <motion.span 
+        className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full uppercase tracking-widest"
+        style={{ 
+          background: 'rgba(37, 99, 235, 0.1)',
+          color: '#2563EB',
+          border: '1px solid rgba(37, 99, 235, 0.2)',
+        }}
+        whileHover={{ scale: 1.05 }}
       >
-        {muted
-          ? <VolumeX className="w-4 h-4 text-white" />
-          : <Volume2 className="w-4 h-4 text-white" />
-        }
-      </button>
+        {isLoading ? 'Chargement...' : count !== undefined ? `${count} Shorts` : 'Shorts'}
+      </motion.span>
+      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+        <Link
+          to="/partager/short"
+          className="text-[10px] font-bold px-3 py-1 rounded-full transition-all flex items-center gap-1"
+          style={{ 
+            background: 'linear-gradient(135deg, #2563EB, #3B82F6)',
+            color: '#FFFFFF',
+            boxShadow: '0 4px 15px rgba(37, 99, 235, 0.3)',
+          }}
+        >
+          <Plus className="w-3 h-3" />
+          Partager
+        </Link>
+      </motion.div>
     </div>
-  );
-};
+  </motion.div>
+);
 
 // ─── Composant principal ──────────────────────────────────────────────────────
 
 export default function FilEvalaShorts() {
   const [shorts, setShorts] = useState<Short[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    shortService.getShorts()
-      .then((data: Short[]) => {
-        setShorts(data.filter(s => s.status === 'published'));
-      })
-      .catch(console.error);
+  // ─── Chargement ───────────────────────────────────────────────────────────
+
+  const loadShorts = useCallback(async () => {
+    try {
+      const response = await shortService.getPublicShorts();
+      setShorts(response.data.filter(s => s.status === 'published'));
+    } catch (err) {
+      console.error('❌ Erreur chargement shorts:', err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => { loadShorts(); }, [loadShorts]);
+
+  // ─── IntersectionObserver ─────────────────────────────────────────────────
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container || shorts.length === 0) return;
 
     const slides = container.querySelectorAll<HTMLElement>('[data-short]');
-
     const observer = new IntersectionObserver(
-      (entries) => {
+      entries => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
-            const index = Number((entry.target as HTMLElement).dataset.short);
-            setActiveIndex(index);
+            setActiveIndex(Number((entry.target as HTMLElement).dataset.short));
           }
         });
       },
@@ -179,68 +118,126 @@ export default function FilEvalaShorts() {
     return () => observer.disconnect();
   }, [shorts]);
 
-  if (shorts.length === 0) return null;
+  // ─── Navigation clavier (scroll programmatique) ───────────────────────────
+
+  const scrollToIndex = useCallback((index: number) => {
+    const container = containerRef.current;
+    if (!container) return;
+    const target = Math.max(0, Math.min(index, shorts.length - 1));
+    const slides = container.querySelectorAll<HTMLElement>('[data-short]');
+    slides[target]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [shorts.length]);
+
+  // ─── États ────────────────────────────────────────────────────────────────
+
+  if (loading && shorts.length === 0) {
+    return (
+      <div className="w-full flex flex-col gap-3">
+        <ShortsHeader isLoading={true} />
+        <motion.div 
+          className="flex items-center justify-center rounded-xl"
+          style={{ 
+            height: SLIDE_HEIGHT,
+            background: 'rgba(37, 99, 235, 0.05)',
+            border: '2px dashed rgba(37, 99, 235, 0.2)',
+          }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+        >
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          >
+            <Loader2 size={32} style={{ color: '#2563EB' }} />
+          </motion.div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (shorts.length === 0) {
+    return (
+      <div className="w-full flex flex-col gap-3">
+        <ShortsHeader count={0} />
+        <motion.div 
+          className="flex items-center justify-center rounded-xl"
+          style={{ 
+            height: SLIDE_HEIGHT,
+            background: 'rgba(37, 99, 235, 0.05)',
+            border: '2px dashed rgba(37, 99, 235, 0.2)',
+          }}
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <div className="text-center">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', stiffness: 300 }}
+              className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center"
+              style={{ 
+                background: 'rgba(37, 99, 235, 0.1)',
+                border: '2px solid rgba(37, 99, 235, 0.2)',
+              }}
+            >
+              <Play className="w-8 h-8" style={{ color: '#2563EB' }} />
+            </motion.div>
+            <p className="text-sm font-medium" style={{ color: '#1A2A4A' }}>
+              Aucun short pour le moment
+            </p>
+            <p className="text-xs mt-1" style={{ color: '#93A8C9' }}>
+              Soyez le premier à publier !
+            </p>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // ─── Affichage ────────────────────────────────────────────────────────────
 
   return (
-    <div className="w-full flex flex-col gap-3" id="component-fil-evala">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-gray-200 pb-2">
-        <h2 className="font-display font-black text-base text-[#222222] uppercase tracking-wide flex items-center gap-2">
-          <Play className="w-4 h-4 text-red-600 fill-current" />
-          Fil Evala
-        </h2>
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-mono font-bold bg-red-100 text-red-600 px-2 py-0.5 rounded-sm uppercase tracking-widest animate-pulse">
-            Shorts
-          </span>
-          <Link
-            to="/partager/short"
-            className="text-[10px] font-bold bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded-full transition-colors flex items-center gap-1"
-          >
-            <Plus className="w-3 h-3" />
-            Partager
-          </Link>
-        </div>
-      </div>
+    <motion.div 
+      className="w-full flex flex-col gap-3" 
+      id="component-fil-evala"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+    >
+      <ShortsHeader count={shorts.length} />
 
-      {/* Indicateur de position */}
-      <div className="flex items-center justify-center gap-1.5">
-        {shorts.map((_, i) => (
-          <div
-            key={i}
-            className="rounded-full transition-all duration-300"
-            style={{
-              width: i === activeIndex ? '18px' : '6px',
-              height: '6px',
-              background: i === activeIndex ? '#D4822A' : '#D1C4B8',
-            }}
-          />
-        ))}
-      </div>
+      {/* ❌ Suppression des indicateurs de progression */}
 
-      {/* Container scroll */}
-      <div
+      {/* Scroll container */}
+      <motion.div
         ref={containerRef}
-        className="w-full rounded-lg overflow-hidden"
+        className="w-full rounded-xl overflow-hidden"
         style={{
-          height: '400px',
+          height: SLIDE_HEIGHT,
           overflowY: 'scroll',
           scrollSnapType: 'y mandatory',
           scrollbarWidth: 'none',
           msOverflowStyle: 'none',
+          border: '1px solid rgba(37, 99, 235, 0.1)',
+          boxShadow: '0 4px 20px rgba(0, 20, 60, 0.1)',
         }}
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.1 }}
       >
         {shorts.map((short, i) => (
-          <div
+          <ShortItem
             key={short.id}
-            data-short={i}
-            style={{ height: '400px', scrollSnapAlign: 'start' }}
-          >
-            <ShortPlayer short={short} isActive={i === activeIndex} />
-          </div>
+            short={short}
+            index={i}
+            isActive={i === activeIndex}
+            onNext={() => scrollToIndex(i + 1)}
+            onPrev={() => scrollToIndex(i - 1)}
+          />
         ))}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -250,179 +247,78 @@ export default function FilEvalaShorts() {
 
 
 
+
+// features/shorts/components/FilEvalaShorts.tsx
 // import React, { useState, useEffect, useRef, useCallback } from 'react';
-// import { Short } from '../types';
-// import { shortService } from '../services';
-// import { Play, RotateCcw, Volume2, VolumeX } from 'lucide-react';
-// import { getImageUrl } from '../utils/imageUtils';
-
-// // ─── Player individuel ────────────────────────────────────────────────────────
-
-// interface ShortPlayerProps {
-//   short: Short;
-//   isActive: boolean;
-// }
-
-// const ShortPlayer: React.FC<ShortPlayerProps> = ({ short, isActive }) => {
-//   const videoRef = useRef<HTMLVideoElement>(null);
-//   const [state, setState] = useState<'idle' | 'playing' | 'ended'>('idle');
-//   const [muted, setMuted] = useState(true);
-
-//   const videoUrl = getImageUrl(short.processed_path, '');
-//   const thumbUrl = getImageUrl(short.thumbnail_path, '');
-
-//   useEffect(() => {
-//     const video = videoRef.current;
-//     if (!video) return;
-
-//     if (isActive && state !== 'ended') {
-//       video.play().catch(() => {});
-//       setState('playing');
-//     } else {
-//       video.pause();
-//       if (!isActive) {
-//         video.currentTime = 0;
-//         setState('idle');
-//       }
-//     }
-//   }, [isActive]);
-
-//   const handleReplay = useCallback(() => {
-//     const video = videoRef.current;
-//     if (!video) return;
-//     video.currentTime = 0;
-//     video.play().catch(() => {});
-//     setState('playing');
-//   }, []);
-
-//   const handleClick = useCallback(() => {
-//     const video = videoRef.current;
-//     if (!video) return;
-//     if (state === 'ended') { handleReplay(); return; }
-//     if (state === 'playing') {
-//       video.pause();
-//       setState('idle');
-//     } else {
-//       video.play().catch(() => {});
-//       setState('playing');
-//     }
-//   }, [state, handleReplay]);
-
-//   return (
-//     <div className="relative w-full h-full bg-black overflow-hidden">
+// import { Play, Plus, Loader2 } from 'lucide-react';
+// import { Link } from 'react-router-dom';
+// import { Short } from '@/features/shorts/types/short';
+// import shortService from '@/features/shorts/services/shortService';
+//  import ShortItem from '@/features/shorts/components/ShortItem';
 
 
-//       {/* Vidéo */}
-//       {videoUrl && (
-//         <video
-//           ref={videoRef}
-//           src={videoUrl}
-//           poster={thumbUrl || undefined}
-//           muted={muted}
-//           playsInline
-//           loop={false}
-//           onClick={handleClick}
-//           onEnded={() => setState('ended')}
-//           className="w-full h-full object-contain cursor-pointer"
-//         />
-//       )}
 
-//       {/* Overlay pause/play */}
-//       {state === 'idle' && (
-//         <div
-//           className="absolute inset-0 flex items-center justify-center cursor-pointer"
-//           onClick={handleClick}
-//         >
-//           <div className="w-20 h-20 rounded-full flex items-center justify-center"
-//             style={{ background: 'rgba(0,0,0,0.45)', border: '2px solid rgba(255,255,255,0.3)' }}>
-//             <Play className="w-9 h-9 text-white fill-current ml-1" />
-//           </div>
-//         </div>
-//       )}
+// const SLIDE_HEIGHT = 400;
 
-//       {/* Overlay replay */}
-//       {state === 'ended' && (
-//         <div
-//           className="absolute inset-0 flex items-center justify-center cursor-pointer"
-//           onClick={handleReplay}
-//           style={{ background: 'rgba(0,0,0,0.5)' }}
-//         >
-//           <div className="flex flex-col items-center gap-3">
-//             <div className="w-20 h-20 rounded-full flex items-center justify-center"
-//               style={{ background: 'rgba(212,130,42,0.85)', border: '2px solid rgba(255,255,255,0.4)' }}>
-//               <RotateCcw className="w-9 h-9 text-white" />
-//             </div>
-//             <span className="text-white text-xs font-bold uppercase tracking-widest">Rejouer</span>
-//           </div>
-//         </div>
-//       )}
 
-//       {/* Infos en bas */}
-//       <div
-//         className="absolute bottom-0 left-0 right-0 px-4 pb-5 pt-12"
-//         style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 100%)' }}
+// interface HeaderProps { count?: number; }
+
+// const ShortsHeader: React.FC<HeaderProps> = ({ count }) => (
+//   <div className="flex items-center justify-between border-b border-gray-200 pb-2">
+//     <h2 className="font-display font-black text-base text-[#222222] uppercase tracking-wide flex items-center gap-2">
+//       <Play className="w-4 h-4 text-red-600 fill-current" />
+//       Fil Evala
+//     </h2>
+//     <div className="flex items-center gap-2">
+//       <span className="text-[10px] font-mono font-bold bg-red-100 text-red-600 px-2 py-0.5 rounded-sm uppercase tracking-widest animate-pulse">
+//         {count !== undefined ? `${count} Shorts` : 'Shorts'}
+//       </span>
+//       <Link
+//         to="/partager/short"
+//         className="text-[10px] font-bold bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded-full transition-colors flex items-center gap-1"
 //       >
-//         <div className="flex items-center gap-2 mb-1">
-//           <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black text-white"
-//             style={{ background: '#8B2500' }}>
-//             {short.user?.name?.charAt(0).toUpperCase() ?? 'U'}
-//           </div>
-//           <span className="text-white text-xs font-bold">{short.user?.name ?? 'Inconnu'}</span>
-//           <span className="text-xs" style={{ color: '#D4822A' }}>@{short.user?.username ?? 'user'}</span>
-//         </div>
-//         {short.text && (
-//           <p className="text-white text-xs leading-relaxed line-clamp-2">{short.text}</p>
-//         )}
-//         {short.duration && (
-//           <span className="text-[10px] font-mono mt-1 block" style={{ color: '#8C6A52' }}>
-//             0:{short.duration.toString().padStart(2, '0')}
-//           </span>
-//         )}
-//       </div>
-
-//       {/* Bouton mute */}
-//       <button
-//         onClick={(e) => { e.stopPropagation(); setMuted(m => !m); }}
-//         className="absolute top-3 right-3 p-2 rounded-full"
-//         style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.2)' }}
-//       >
-//         {muted
-//           ? <VolumeX className="w-4 h-4 text-white" />
-//           : <Volume2 className="w-4 h-4 text-white" />
-//         }
-//       </button>
+//         <Plus className="w-3 h-3" />
+//         Partager
+//       </Link>
 //     </div>
-//   );
-// };
+//   </div>
+// );
 
 // // ─── Composant principal ──────────────────────────────────────────────────────
 
 // export default function FilEvalaShorts() {
 //   const [shorts, setShorts] = useState<Short[]>([]);
 //   const [activeIndex, setActiveIndex] = useState(0);
+//   const [loading, setLoading] = useState(true);
 //   const containerRef = useRef<HTMLDivElement>(null);
 
-//   useEffect(() => {
-//   shortService.getShorts()
-//     .then((data: Short[]) => {
-//       setShorts(data.filter(s => s.status === 'published'));
-//     })
-//     .catch(console.error);
-// }, []);
+//   // ─── Chargement ───────────────────────────────────────────────────────────
 
-//   // IntersectionObserver : détecte quel short est visible
+//   const loadShorts = useCallback(async () => {
+//     try {
+//       const response = await shortService.getPublicShorts();
+//       setShorts(response.data.filter(s => s.status === 'published'));
+//     } catch (err) {
+//       console.error('❌ Erreur chargement shorts:', err);
+//     } finally {
+//       setLoading(false);
+//     }
+//   }, []);
+
+//   useEffect(() => { loadShorts(); }, [loadShorts]);
+
+//   // ─── IntersectionObserver ─────────────────────────────────────────────────
+
 //   useEffect(() => {
 //     const container = containerRef.current;
 //     if (!container || shorts.length === 0) return;
 
 //     const slides = container.querySelectorAll<HTMLElement>('[data-short]');
-
 //     const observer = new IntersectionObserver(
-//       (entries) => {
+//       entries => {
 //         entries.forEach(entry => {
 //           if (entry.isIntersecting) {
-//             const index = Number((entry.target as HTMLElement).dataset.short);
-//             setActiveIndex(index);
+//             setActiveIndex(Number((entry.target as HTMLElement).dataset.short));
 //           }
 //         });
 //       },
@@ -433,44 +329,55 @@ export default function FilEvalaShorts() {
 //     return () => observer.disconnect();
 //   }, [shorts]);
 
-//   if (shorts.length === 0) return null;
+//   // ─── Navigation clavier (scroll programmatique) ───────────────────────────
 
-//   // Dans FilEvalaShorts - ajuster la hauteur selon la colonne
+//   const scrollToIndex = useCallback((index: number) => {
+//     const container = containerRef.current;
+//     if (!container) return;
+//     const target = Math.max(0, Math.min(index, shorts.length - 1));
+//     const slides = container.querySelectorAll<HTMLElement>('[data-short]');
+//     slides[target]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+//   }, [shorts.length]);
+
+//   // ─── États ────────────────────────────────────────────────────────────────
+
+//   if (loading && shorts.length === 0) {
+//     return (
+//       <div className="w-full flex flex-col gap-3">
+//         <ShortsHeader />
+//         <div className="flex items-center justify-center" style={{ height: SLIDE_HEIGHT }}>
+//           <Loader2 size={32} className="animate-spin text-gray-400" />
+//         </div>
+//       </div>
+//     );
+//   }
+
+//   if (shorts.length === 0) {
+//     return (
+//       <div className="w-full flex flex-col gap-3">
+//         <ShortsHeader />
+//         <div className="flex items-center justify-center" style={{ height: SLIDE_HEIGHT }}>
+//           <div className="text-center">
+//             <p className="text-gray-400 text-sm"> Aucun short pour le moment</p>
+//             <p className="text-gray-300 text-xs">Soyez le premier à publier !</p>
+//           </div>
+//         </div>
+//       </div>
+//     );
+//   }
+
+//   // ─── Affichage ────────────────────────────────────────────────────────────
 
 //   return (
 //     <div className="w-full flex flex-col gap-3" id="component-fil-evala">
-//       {/* Header */}
-//       <div className="flex items-center justify-between border-b border-gray-200 pb-2">
-//         <h2 className="font-display font-black text-base text-[#222222] uppercase tracking-wide flex items-center gap-2">
-//           <Play className="w-4 h-4 text-red-600 fill-current" />
-//           Fil Evala
-//         </h2>
-//         <span className="text-[10px] font-mono font-bold bg-red-100 text-red-600 px-2 py-0.5 rounded-sm uppercase tracking-widest animate-pulse">
-//           Shorts
-//         </span>
-//       </div>
+//       <ShortsHeader count={shorts.length} />
 
-//       {/* Indicateur de position */}
-//       <div className="flex items-center justify-center gap-1.5">
-//         {shorts.map((_, i) => (
-//           <div
-//             key={i}
-//             className="rounded-full transition-all duration-300"
-//             style={{
-//               width: i === activeIndex ? '18px' : '6px',
-//               height: '6px',
-//               background: i === activeIndex ? '#D4822A' : '#D1C4B8',
-//             }}
-//           />
-//         ))}
-//       </div>
-
-//       {/* Container scroll - hauteur ajustée */}
+//       {/* Scroll container */}
 //       <div
 //         ref={containerRef}
 //         className="w-full rounded-lg overflow-hidden"
 //         style={{
-//           height: '400px', // Réduit pour mieux s'adapter à la colonne
+//           height: SLIDE_HEIGHT,
 //           overflowY: 'scroll',
 //           scrollSnapType: 'y mandatory',
 //           scrollbarWidth: 'none',
@@ -478,16 +385,24 @@ export default function FilEvalaShorts() {
 //         }}
 //       >
 //         {shorts.map((short, i) => (
-//           <div
+//           <ShortItem
 //             key={short.id}
-//             data-short={i}
-//             style={{ height: '400px', scrollSnapAlign: 'start' }}
-//           >
-//             <ShortPlayer short={short} isActive={i === activeIndex} />
-//           </div>
+//             short={short}
+//             index={i}
+//             isActive={i === activeIndex}
+//             onNext={() => scrollToIndex(i + 1)}
+//             onPrev={() => scrollToIndex(i - 1)}
+//           />
 //         ))}
 //       </div>
 //     </div>
 //   );
 // }
+
+
+
+
+
+
+
 
