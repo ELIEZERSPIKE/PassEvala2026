@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useFlashMutation } from '../hooks/useflahInfo';
-import { FlashInfo } from '../api/flashApi';
+ import { FlashInfo } from '../api/flashApi';
+import { useFlashMutation } from '../hooks/useflashInfoMutation';
 
 interface FlashInfoFormProps {
   initialData?: FlashInfo | null;

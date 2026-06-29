@@ -2,13 +2,17 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { articleService } from '../../services/articleService';
 import { getImageUrl } from '@/utils/imageUtils';
+import { useAuth } from '@/store/authContext';
 import { ArrowLeft, Save, Loader2, ImagePlus, Star, X } from 'lucide-react';
 
 export const ArticleForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const isEdit = !!id && id !== 'new';
   const previewRef = useRef<string | null>(null);
+
+  const backPath = user?.role === 'reporter' ? '/reporter/articles' : '/admin/articles';
 
   const [formData, setFormData] = useState({
     title: '',
@@ -18,6 +22,7 @@ export const ArticleForm: React.FC = () => {
   });
   const [image, setImage] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [isBlob, setIsBlob] = useState(false); // ✅ on sait si c'est une image locale ou serveur
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(isEdit);
   const [error, setError] = useState<string | null>(null);
@@ -33,7 +38,10 @@ export const ArticleForm: React.FC = () => {
             content: data.content || '',
             is_hero: !!data.is_hero,
           });
-          if (data.image_path) setPreview(data.image_path);
+          if (data.image_path) {
+            setPreview(data.image_path); // chemin serveur → passera dans getImageUrl
+            setIsBlob(false);
+          }
         })
         .catch(() => setError("Impossible de charger l'article."))
         .finally(() => setFetchLoading(false));
@@ -41,6 +49,7 @@ export const ArticleForm: React.FC = () => {
       setFormData({ title: '', summary: '', content: '', is_hero: false });
       setPreview(null);
       setImage(null);
+      setIsBlob(false);
     }
 
     return () => {
@@ -53,6 +62,7 @@ export const ArticleForm: React.FC = () => {
   const handleRemoveImage = () => {
     setImage(null);
     setPreview(null);
+    setIsBlob(false);
     if (previewRef.current?.startsWith('blob:')) {
       URL.revokeObjectURL(previewRef.current);
     }
@@ -69,6 +79,7 @@ export const ArticleForm: React.FC = () => {
       previewRef.current = url;
       setImage(file);
       setPreview(url);
+      setIsBlob(true); // ✅ image locale — ne pas passer dans getImageUrl
     }
   };
 
@@ -83,8 +94,6 @@ export const ArticleForm: React.FC = () => {
     data.append('content', formData.content);
     data.append('is_hero', formData.is_hero ? '1' : '0');
     if (image) data.append('image', image);
-    // Si on est en édition et que l'aperçu a été supprimé (sans nouvelle image), 
-    // on envoie un flag pour supprimer l'image sur le serveur.
     else if (isEdit && !preview) {
       data.append('remove_image', '1');
     }
@@ -95,7 +104,7 @@ export const ArticleForm: React.FC = () => {
       } else {
         await articleService.create(data);
       }
-      navigate('/admin/articles');
+      navigate(backPath);
     } catch (err: any) {
       const msg = err?.response?.data?.message || "Erreur lors de l'enregistrement.";
       setError(msg);
@@ -103,6 +112,13 @@ export const ArticleForm: React.FC = () => {
       setLoading(false);
     }
   };
+
+  // ✅ Logique d'affichage propre — blob direct, serveur via getImageUrl
+  const displayPreview = preview
+    ? isBlob
+      ? preview
+      : getImageUrl(preview)
+    : null;
 
   if (fetchLoading) {
     return (
@@ -115,23 +131,21 @@ export const ArticleForm: React.FC = () => {
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      {/* Header */}
       <div className="mb-6">
         <Link
-          to="/admin/articles"
+          to={backPath}
           className="text-blue-600 hover:text-blue-700 flex items-center gap-1 mb-4 text-sm font-bold uppercase tracking-wider"
         >
           <ArrowLeft className="w-4 h-4" /> Retour aux articles
         </Link>
         <h1 className="text-3xl font-black text-gray-900">
-          {isEdit ? 'Modifier l\'article' : 'Nouvel article'}
+          {isEdit ? "Modifier l'article" : 'Nouvel article'}
         </h1>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="bg-white shadow-sm border border-gray-100 rounded-2xl p-6 space-y-5">
 
-          {/* Titre */}
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1.5">Titre *</label>
             <input
@@ -144,7 +158,6 @@ export const ArticleForm: React.FC = () => {
             />
           </div>
 
-          {/* Résumé */}
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1.5">
               Résumé <span className="text-gray-400 font-normal">(optionnel)</span>
@@ -158,7 +171,6 @@ export const ArticleForm: React.FC = () => {
             />
           </div>
 
-          {/* Contenu */}
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1.5">Contenu *</label>
             <textarea
@@ -171,7 +183,6 @@ export const ArticleForm: React.FC = () => {
             />
           </div>
 
-          {/* Image */}
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1.5">Image à la une</label>
             <div className="flex items-start gap-4">
@@ -180,9 +191,15 @@ export const ArticleForm: React.FC = () => {
                 {image ? image.name : 'Choisir une image'}
                 <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
               </label>
-              {preview && (
+
+              {/* ✅ displayPreview gère blob et serveur séparément */}
+              {displayPreview && (
                 <div className="relative group/img">
-                  <img src={getImageUrl(preview)} alt="Aperçu" className="w-32 h-20 object-cover rounded-xl border border-gray-200 shadow-sm" />
+                  <img
+                    src={displayPreview}
+                    alt="Aperçu"
+                    className="w-32 h-20 object-cover rounded-xl border border-gray-200 shadow-sm"
+                  />
                   <button
                     type="button"
                     onClick={handleRemoveImage}
@@ -196,7 +213,6 @@ export const ArticleForm: React.FC = () => {
             </div>
           </div>
 
-          {/* Hero */}
           <label className="flex items-center gap-3 cursor-pointer group">
             <div className={`w-10 h-6 rounded-full transition-colors ${formData.is_hero ? 'bg-blue-600' : 'bg-gray-200'} relative`}>
               <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all ${formData.is_hero ? 'left-5' : 'left-1'}`} />
@@ -214,14 +230,12 @@ export const ArticleForm: React.FC = () => {
           </label>
         </div>
 
-        {/* Erreur */}
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
             {error}
           </div>
         )}
 
-        {/* Actions */}
         <div className="flex items-center gap-3">
           <button
             type="submit"
@@ -232,7 +246,7 @@ export const ArticleForm: React.FC = () => {
             {loading ? 'Enregistrement...' : 'Enregistrer'}
           </button>
           <Link
-            to="/admin/articles"
+            to={backPath}
             className="px-6 py-2.5 rounded-xl font-bold text-gray-600 hover:bg-gray-100 transition-all"
           >
             Annuler

@@ -1,60 +1,56 @@
-import { useState } from "react";
-import api from "../../../api/axios";
+// features/flash-info/hooks/useFlashMutation.ts
+import { useState } from 'react';
+import { flashInfoApi, FlashInfo } from '../api/flashApi';
 
-export function useBonPlanMutation() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+type MutationAction =
+  | { action: 'create'; payload: { title: string; link?: string | null } }
+  | { action: 'update'; payload: { id: number; title?: string; link?: string | null } }
+  | { action: 'delete'; payload: { id: number } };
 
-  const handleAxiosError = (err: any) => {
-    if (err.response) {
-      if (err.response.status === 422) {
-        // Transforme l'objet d'erreurs Laravel ['field': ['error msg']] en ['field': 'error msg']
-        const formattedErrors: Record<string, string> = {};
-        for (const key in err.response.data.errors) {
-          formattedErrors[key] = err.response.data.errors[key][0];
-        }
-        setValidationErrors(formattedErrors);
-      } else if (err.response.status === 403) {
-        setError(err.response.data.message || "Action non autorisée.");
+interface MutationResult {
+  success: boolean;
+  data?: FlashInfo;
+  message?: string;
+}
+
+interface UseFlashMutationReturn {
+  mutate: (action: MutationAction['action'], payload: any) => Promise<MutationResult>;
+  loading: boolean;
+  error: string | null;
+  validationErrors: Record<string, string[]>;
+}
+
+export const useFlashMutation = (): UseFlashMutationReturn => {
+  const [loading, setLoading]               = useState(false);
+  const [error, setError]                   = useState<string | null>(null);
+  const [validationErrors, setValidation]   = useState<Record<string, string[]>>({});
+
+  const mutate = async (action: MutationAction['action'], payload: any): Promise<MutationResult> => {
+    setLoading(true);
+    setError(null);
+    setValidation({});
+
+    try {
+      let res;
+      if (action === 'create') {
+        res = await flashInfoApi.create(payload);
+      } else if (action === 'update') {
+        const { id, ...data } = payload;
+        res = await flashInfoApi.update(id, data);
       } else {
-        setError("Une erreur est survenue sur le serveur.");
+        res = await flashInfoApi.delete(payload.id);
       }
-    } else {
-      setError("Impossible de contacter le serveur.");
+      return { success: true, data: (res as any).data, message: res.message };
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || 'Une erreur est survenue.';
+      const errors = err?.response?.data?.errors || {};
+      setError(msg);
+      setValidation(errors);
+      return { success: false };
+    } finally {
+      setLoading(false);
     }
   };
 
-  async function createBonPlan(formData: FormData): Promise<boolean> {
-    setLoading(true);
-    setError(null);
-    setValidationErrors({});
-    try {
-      await api.post("/bon-plans", formData);
-      return true;
-    } catch (err) {
-      handleAxiosError(err);
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function updateBonPlan(id: number, formData: FormData): Promise<boolean> {
-    setLoading(true);
-    setError(null);
-    setValidationErrors({});
-    try {
-      // Note : On passe par un .post() avec _method=PUT car l'upload de fichiers via FormData ne passe parfois pas en PUT natif sur PHP/Laravel
-      await api.post(`/bon-plans/${id}`, formData);
-      return true;
-    } catch (err) {
-      handleAxiosError(err);
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  return { createBonPlan, updateBonPlan, loading, error, validationErrors };
-}
+  return { mutate, loading, error, validationErrors };
+};

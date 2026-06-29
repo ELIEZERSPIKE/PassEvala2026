@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { useFlashInfo, useFlashMutation } from '../hooks/useflahInfo';
 import { FlashInfoFilters } from '../components/flashInfoFilters';
 import { FlashInfoTable } from '../components/flashInfoTable';
 import { FlashInfoForm } from '../components/flashInfoForm'; // Ton formulaire adapté
 import { FlashInfo } from '../api/flashApi';
+import { useFlashInfo } from '../hooks/useflashInfo';
+import { useFlashMutation } from '../hooks/useflashInfoMutation'; // fichier séparé
 
 export const FlashInfoPages: React.FC = () => {
   // Lecture

@@ -1,23 +1,59 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import {defineConfig} from 'vite';
+import { defineConfig } from 'vite';
 
 export default defineConfig(() => {
   return {
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
-        // Resolve `@` to the `src` directory so imports like `@/store` work
         '@': path.resolve(__dirname, 'src'),
       },
     },
     server: {
-      // HMR is disabled in AI Studio via DISABLE_HMR env var.
-      // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
+      port: 3000, // Port du frontend
+      proxy: {
+        // Proxy pour les requêtes API
+        '/api': {
+          target: 'http://localhost:8000',
+          changeOrigin: true,
+        },
+        // Proxy pour les fichiers statiques (storage)
+        '/storage': {
+          target: 'http://localhost:8000',
+          changeOrigin: true,
+        },
+      },
+      // HMR est désactivé dans AI Studio via DISABLE_HMR env var.
       hmr: process.env.DISABLE_HMR !== 'true',
-      // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
+      // Désactiver le watch quand DISABLE_HMR est true
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
     },
   };
 });
+
+
+// import tailwindcss from '@tailwindcss/vite';
+// import react from '@vitejs/plugin-react';
+// import path from 'path';
+// import {defineConfig} from 'vite';
+
+// export default defineConfig(() => {
+//   return {
+//     plugins: [react(), tailwindcss()],
+//     resolve: {
+//       alias: {
+//         // Resolve `@` to the `src` directory so imports like `@/store` work
+//         '@': path.resolve(__dirname, 'src'),
+//       },
+//     },
+//     server: {
+//       // HMR is disabled in AI Studio via DISABLE_HMR env var.
+//       // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
+//       hmr: process.env.DISABLE_HMR !== 'true',
+//       // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
+//       watch: process.env.DISABLE_HMR === 'true' ? null : {},
+//     },
+//   };
+// });

@@ -1,31 +1,38 @@
 
+// types/index.ts
+
 export interface User {
   id: number;
   name: string | null;
   username: string;
   phone: string | null;
   role: string;
-  permissions: string[]; // ← le tableau qui sert a gerer les permissions laravel
+  permissions: string[];
   is_active: boolean;
   avatar_url?: string | null;
   created_at: string;
   updated_at: string;
 }
-// export interface Article {
-//   id: number;
-//   user_id: number;
-//   title: string;
-//   slug: string;
-//   summary: string | null;
-//   content: string | null;
-//   image_path: string | null;
-//   is_hero: boolean;
-//   created_at: string;
-//   updated_at: string;
-//   user?: User; // via Eager Loading
-// }
 
-// types/index.ts
+export interface AuthResponse {
+  message: string;
+  data: User;      // ← correspond au retour Laravel { message, data, token }
+  token: string;
+}
+
+export interface LoginRequest {
+  username: string;
+  password: string;
+}
+
+export interface SignupRequest {
+  name?: string;
+  username: string;
+  phone?: string;
+  password: string;
+  password_confirmation: string;
+}
+
 export interface Article {
   id: number;
   title: string;
@@ -99,50 +106,6 @@ export interface PaginatedResponse<T> {
   total: number;
 }
 
-// export interface Short {
-//   id: number;
-//   user_id: number;
-//   text: string | null;
-//   status: 'draft' | 'published' | 'archived';
-//   raw_path: string | null;
-//   processed_path: string | null;
-//   thumbnail_path: string | null;
-//   duration: number | null;
-//   created_at: string;
-//   updated_at: string;
-//   user?: User;
-// }
-
-// types/short.ts
-// export interface Short {
-//   id: number;
-//   user_id: number;
-//   text: string | null;
-//   status: 'draft' | 'published' | 'archived';
-//   raw_path: string | null;
-//   processed_path: string | null;
-//   thumbnail_path: string | null;
-//   duration: number | null;
-//   created_at: string;
-//   updated_at: string;
-//   user?: {
-//     id: number;
-//     name: string;
-//     username: string;
-//   };
-// }
-
-// export interface ShortPayload {
-//   text?: string;
-//   video: File;
-// }
-
-// export interface ShortUpdatePayload {
-//   text?: string;
-//   status?: 'draft' | 'published' | 'archived';
-//   video?: File | null;
-// }
-// types/short.ts
 
 interface Short {
   id: number;
@@ -217,22 +180,4 @@ export interface CalendarEvent {
   type: 'Wrestling' | 'Culture' | 'Official';
 }
 
-// Authentication Interfaces
-export interface LoginRequest {
-  username: string;
-  password: string;
-}
 
-export interface SignupRequest {
-  name?: string;
-  username: string;
-  phone?: string;
-  password: string;
-  password_confirmation: string;
-}
-
-export interface AuthResponse {
-  message: string;
-  data: User;
-  token: string;
-}

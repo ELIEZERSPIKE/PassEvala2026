@@ -1,7 +1,7 @@
-// App.tsx
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './store/authContext';
 import MainLayout from './layouts/MainLayout';
+import ReporterLayout from './layouts/ReporterLayout';
 import Login from './features/auth/pages/Login';
 import Signup from './features/auth/pages/Signup';
 import ToastProvider from './components/Toast/ToastProvider';
@@ -20,9 +20,10 @@ const App = () => {
     );
   }
 
-  const staffRoles = ['superadmin', 'admin'];
-  const isStaff = user && staffRoles.includes(user.role);
-  const redirectionPath = isStaff ? '/admin' : '/';
+  const redirectionPath =
+    user?.role === 'superadmin' || user?.role === 'admin' ? '/admin' :
+    user?.role === 'reporter' ? '/reporter' :
+    '/';
 
   return (
     <Router>
@@ -37,6 +38,9 @@ const App = () => {
             path="/signup"
             element={isAuthenticated ? <Navigate to={redirectionPath} replace /> : <Signup />}
           />
+          {/* Espace reporter — isolé */}
+          <Route path="/reporter/*" element={<ReporterLayout />} />
+          {/* Espace admin + public */}
           <Route path="/*" element={<MainLayout />} />
         </Routes>
       </PageTransitionWrapper>

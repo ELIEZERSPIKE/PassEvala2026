@@ -1,4 +1,5 @@
-import api from './api';
+// features/auth/services/authService.ts
+import api from '../api/axios';
 import { LoginRequest, SignupRequest, AuthResponse } from '../types';
 
 export const authService = {
@@ -16,8 +17,18 @@ export const authService = {
     await api.post('/logout');
   },
 
-  getCurrentUser: async () => {
+  getCurrentUser: async (): Promise<{ data: User }> => {
     const response = await api.get('/me');
+    return response.data;
+  },
+
+  // ✅ Upload avatar
+  updateAvatar: async (file: File): Promise<{ message: string; avatar_url: string }> => {
+    const formData = new FormData();
+    formData.append('avatar', file);
+    const response = await api.post('/me/avatar', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
     return response.data;
   },
 };

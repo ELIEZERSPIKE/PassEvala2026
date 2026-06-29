@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Header from '../components/Header';
-import SponsorBanner from '../components/SponsorBanner';
+ import SponsorBanner from '../components/SponsorBanner';
 import FlashInfoFeed from '../components/FlashInfoFeed';
 import NewsSection from '../components/NewsSection';
 import FilEvalaShorts from '../components/FilEvalaShorts';
@@ -21,11 +21,11 @@ import PageTransition from '../components/Animations/PageTransition';
 import RevealOnScroll from '../components/Animations/RevealOnScroll';
 import { useToast } from '../hooks/useToast';
 
-type NavSection = 'news' | 'evala-feed' | 'kara-tips' | 'numbers' | 'calendar' | 'all' | string;
+type NavSection = 'news' | 'evala-shorts' | 'kara-tips' | 'numeros utiles' | 'calendrier' | 'all' | string;
 
 const NAV_MAP: Partial<Record<NavSection, string>> = {
   news: 'component-news-section-wrapper',
-  'evala-feed': 'component-fil-evala-wrapper',
+  'evala-shorts': 'component-fil-evala-wrapper',
   'kara-tips': 'component-bons-plans-wrapper',
   numbers: 'component-useful-numbers-wrapper',
 };
@@ -144,7 +144,7 @@ export default function HomePage() {
                     whileHover={{ scale: 1.02, boxShadow: '0 10px 30px rgba(0,0,0,0.08)' }}
                     transition={{ type: 'spring', stiffness: 300 }}
                   >
-                    <SponsorBanner />
+                    / <SponsorBanner /> 
                   </motion.div>
                 </RevealOnScroll>
 
